@@ -1,0 +1,7 @@
+.DS_Store
+*.swp
+*.swo
+*~
+
+# tmux plugins are installed by TPM and are not part of this repository.
+tmux/plugins/
