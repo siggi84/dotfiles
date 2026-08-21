@@ -7,10 +7,7 @@ vim.g.maplocalleader = " "
 vim.g.loaded_node_provider = 0
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
-vim.g.loaded_python_provider = 0
-
--- New UI opt-in
-require('vim._core.ui2').enable({})
+vim.g.loaded_python3_provider = 0
 
 -- enable true color support
 vim.opt.termguicolors = true
@@ -53,8 +50,6 @@ vim.opt.updatetime = 300 -- faster completion
 
 vim.opt.autoread = true -- auto-reload changes if outside of neovim
 vim.opt.autowrite = false -- do not auto-save
-vim.opt.encoding = "utf-8" -- set encoding
-
 -- sets how neovim will display certain whitespace characters in the editor.
 --  see `:help 'list'`
 --  and `:help 'listchars'`
@@ -120,9 +115,9 @@ vim.pack.add({
 	},
 }, { confirm = false })
 
-require("nvim-treesitter").setup({
-  auto_install = true, -- autoinstall languages that are not installed yet
-})
+local treesitter = require("nvim-treesitter")
+treesitter.setup()
+treesitter.install({ "json", "lua", "python", "regex", "rust" })
 
 
 -- INFO: completion engine
@@ -299,24 +294,25 @@ require("mini.notify").setup({
 })
 require("mini.files").setup({
   mappings = {
-    close       = 'q',
-    go_in       = 'l',
-    go_in_plus  = 'L',
-    go_out      = 'h',
-    go_out_plus = 'H',
+    close       = "q",
+    go_in       = "",
+    go_in_plus  = "<CR>",
+    go_out      = "<BS>",
+    go_out_plus = "H",
     mark_goto   = "'",
-    mark_set    = 'm',
-    reset       = '<BS>',
-    reveal_cwd  = '@',
-    show_help   = 'g?',
-    synchronize = '=',
-    trim_left   = '<',
-    trim_right  = '>',
+    mark_set    = "m",
+    reset       = "g<BS>",
+    reveal_cwd  = "@",
+    show_help   = "g?",
+    synchronize = "=",
+    trim_left   = "<",
+    trim_right  = ">",
   },
 })
-vim.keymap.set("n", "<leader>e", ":lua MiniFiles.open()<cr>", { desc = "Open Files", remap = true })
+vim.keymap.set("n", "<leader>e", function()
+  MiniFiles.open()
+end, { desc = "Open Files" })
 
-require("mini.diff").setup({})
 
 -- Snacks
 vim.pack.add({ "https://github.com/folke/snacks.nvim" }, { confirm = false })
@@ -325,28 +321,6 @@ require("snacks").setup({
   lazygit = { enabled = true },
   terminal = { enabled = true },
   zen = { enabled = true },
-  image = {
-    enabled = true,
-    resolve = function(file, src)
-      local api = require("obsidian.api")
-      if not api.path_is_note(file) then
-        return
-      end
-
-      local note_dir = vim.fs.dirname(file)
-      local local_path = vim.fs.normalize(note_dir .. "/" .. src)
-      if vim.fn.filereadable(local_path) == 1 then
-        return local_path
-      end
-
-      local attachment_path = api.resolve_attachment_path(src)
-      if vim.fn.filereadable(attachment_path) == 1 then
-        return attachment_path
-      end
-
-      return nil
-    end,
-  }
 })
 vim.ui.select = Snacks.picker.select
 
@@ -392,7 +366,9 @@ vim.keymap.set("n", "gr", function() require("snacks").picker.lsp_references() e
 vim.keymap.set("n", "gI", function() require("snacks").picker.lsp_implementations() end, { desc = "LSP implementations" })
 vim.keymap.set("n", "gy", function() require("snacks").picker.lsp_type_definitions() end, { desc = "LSP type definitions" })
 
-vim.keymap.set("n", "<leader>gg", ":lua Snacks.lazygit()<cr>", { desc = "Open lazygit", remap = true })
+vim.keymap.set("n", "<leader>gg", function()
+  Snacks.lazygit()
+end, { desc = "Open lazygit" })
 vim.keymap.set({ "n", "t" }, "<c-t>", function() Snacks.terminal() end, { desc = "Toggle terminal" })
 
 -- Nightfox theme
@@ -418,20 +394,6 @@ vim.pack.add({
 }, { confirm = false })
 require('lualine').setup()
 
-
-vim.pack.add({"https://github.com/obsidian-nvim/obsidian.nvim"},  { confirm = false})
-require("obsidian").setup({
-      legacy_commands = false, -- this will be removed in the next major release
-      workspaces = {
-        {
-          name = "personal",
-          path = "~/Documents/DefaultVault",
-        },
-      },
-        picker = {
-          name = "snacks.pick", -- or "mini.pick"
-        },
-})
 
 vim.pack.add({"https://github.com/nvim-lua/plenary.nvim"}, {confirm = false})
 vim.pack.add({"https://github.com/neogitorg/neogit"},  { confirm = false})
