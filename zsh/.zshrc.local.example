@@ -1,0 +1,8 @@
+# Copy to ~/.zshrc.local for machine-specific configuration.
+# This file is loaded before Oh My Zsh. Keep credentials in ~/.zsh_secrets.
+
+# Use a stable installation path instead of embedding a version in .zshrc:
+# [[ -d "$HOME/.local/opt/lua-language-server/bin" ]] && \
+#   path=("$HOME/.local/opt/lua-language-server/bin" $path)
+
+# export NVM_DIR="$HOME/.config/nvm"

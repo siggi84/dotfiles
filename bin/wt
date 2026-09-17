@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve the installer symlink so shared code stays in the repository.
+source "$(dirname -- "$(readlink -f -- "$0")")/../lib/worktree.sh"
+worktree_init "$@"
+require_commands nvim codex
+
+session_exists=0
+if tmux has-session -t "=$session" 2>/dev/null; then
+  validate_session
+  session_exists=1
+fi
+
+if [[ -e "$worktree" || -L "$worktree" ]]; then
+  validate_worktree
+else
+  (( session_exists == 0 )) || die "Session exists but its worktree is missing: $worktree"
+  mkdir -p -- "${worktree%/*}"
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    git worktree add "$worktree" "$branch"
+  else
+    git rev-parse --verify develop^{commit} >/dev/null || die 'Local branch develop does not exist.'
+    git worktree add -b "$branch" "$worktree" develop
+  fi
+fi
+
+if (( session_exists == 0 )); then
+  created_session=''
+  setup_failed() {
+    local result=$?
+    if (( result != 0 )); then
+      [[ -z "$created_session" ]] || tmux kill-session -t "$created_session" 2>/dev/null || true
+      printf 'tmux setup failed; worktree and branch kept at %s. Retry wt %s.\n' "$worktree" "$name" >&2
+    fi
+  }
+  trap setup_failed EXIT
+  session_info=$(tmux new-session -d -s "$session" -c "$worktree" -P -F '#{session_id} #{pane_id}')
+  read -r created_session nvim_pane <<< "$session_info"
+  codex_pane=$(tmux split-window -h -t "$nvim_pane" -c "$worktree" -P -F '#{pane_id}')
+  tmux split-window -v -t "$nvim_pane" -c "$worktree" >/dev/null
+  tmux resize-pane -t "$nvim_pane" -x 60%
+  tmux resize-pane -t "$nvim_pane" -y 70%
+  tmux select-pane -t "$nvim_pane"
+  tmux send-keys -t "$nvim_pane" 'nvim' Enter
+  # Preserve the existing local Codex invocation.
+  tmux send-keys -t "$codex_pane" 'codex --sandbox danger-full-access --ask-for-approval never' Enter
+  trap - EXIT
+fi
+
+if [[ -n "${TMUX:-}" ]]; then
+  exec tmux switch-client -t "=$session"
+else
+  exec tmux attach-session -t "=$session"
+fi

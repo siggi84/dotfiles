@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(dirname -- "$(readlink -f -- "$0")")/../lib/worktree.sh"
+worktree_init "$@"
+
+session_exists=0
+if tmux has-session -t "=$session" 2>/dev/null; then
+  validate_session
+  session_exists=1
+fi
+
+if [[ -e "$worktree" || -L "$worktree" ]]; then
+  validate_worktree
+  # Let Git refuse dirty/locked worktrees before touching the tmux session.
+  git worktree remove "$worktree" || die 'Worktree removal failed; tmux session and branch were kept.'
+  printf 'Removed worktree: %s\n' "$worktree"
+else
+  printf 'Worktree does not exist: %s\n' "$worktree"
+fi
+
+if (( session_exists )); then
+  tmux kill-session -t "=$session"
+fi
+printf 'Branch kept: %s\n' "$branch"

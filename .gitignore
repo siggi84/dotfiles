@@ -10,3 +10,8 @@ tmux/plugins/
 .zsh_secrets
 .zsh_secrets.*
 !.zsh_secrets.example
+
+# Machine-specific shell overrides.
+.zshrc.local
+
+__pycache__/
