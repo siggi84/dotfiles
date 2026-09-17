@@ -12,7 +12,7 @@ usage() {
   cat <<'EOF'
 Usage: ./install.sh [--force] [--skip-tmux-plugins]
 
-Create symlinks for the Neovim and tmux configurations.
+Create symlinks for the Neovim, tmux, and zsh configurations.
 
 Options:
   --force              Move conflicting configs to a timestamped backup first.
@@ -42,9 +42,9 @@ while (($#)); do
   shift
 done
 
-declare -a NAMES=(nvim tmux)
-declare -a SOURCES=("$DOTFILES_DIR/nvim" "$DOTFILES_DIR/tmux")
-declare -a TARGETS=("$CONFIG_HOME/nvim" "$CONFIG_HOME/tmux")
+declare -a NAMES=(nvim tmux zsh)
+declare -a SOURCES=("$DOTFILES_DIR/nvim" "$DOTFILES_DIR/tmux" "$DOTFILES_DIR/zsh/.zshrc")
+declare -a TARGETS=("$CONFIG_HOME/nvim" "$CONFIG_HOME/tmux" "${ZDOTDIR:-$HOME}/.zshrc")
 
 is_installed() {
   local source="$1"
@@ -70,7 +70,7 @@ for index in "${!TARGETS[@]}"; do
   fi
 done
 
-mkdir -p "$CONFIG_HOME"
+mkdir -p "$CONFIG_HOME" "${ZDOTDIR:-$HOME}"
 
 for index in "${!TARGETS[@]}"; do
   name="${NAMES[$index]}"

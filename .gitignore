@@ -5,3 +5,8 @@
 
 # tmux plugins are installed by TPM and are not part of this repository.
 tmux/plugins/
+
+# Local credentials; only .zsh_secrets.example belongs in Git.
+.zsh_secrets
+.zsh_secrets.*
+!.zsh_secrets.example
