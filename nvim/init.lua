@@ -26,7 +26,9 @@ vim.opt.mouse = "a"
 -- sync clipboard between OS and neovim.
 --  remove this option if you want your OS clipboard to remain independent.
 --  see `:help 'clipboard'`
-vim.opt.clipboard = "unnamedplus"
+-- vim.opt.clipboard = "unnamedplus"
+
+vim.opt.clipboard = ""
 
 -- keep signcolumn on by default
 vim.opt.signcolumn = "yes"
